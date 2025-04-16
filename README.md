@@ -138,3 +138,9 @@ type MailMessage struct {
 ```
 
 This template will be rendered with the `Name` field provided in the `data` map.
+
+---
+
+## 🪪 License
+
+[MIT](./LICENSE)
