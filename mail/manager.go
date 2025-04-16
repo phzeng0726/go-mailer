@@ -23,10 +23,9 @@ type Manager struct {
 }
 
 type MailMessage struct {
-	Subject  string
-	Message  string
-	MsgStyle string
-	To       []string
+	Subject string
+	Message string
+	To      []string
 }
 
 func NewManager(smtpServer string, smtpPort string, smtpSender string, templatePath string) (*Manager, error) {
@@ -50,13 +49,28 @@ func NewManager(smtpServer string, smtpPort string, smtpSender string, templateP
 	}, nil
 }
 
+func (m *Manager) buildHTMLMessage(subject, body string) []byte {
+	headers := map[string]string{
+		"MIME-Version": "1.0",
+		"Content-Type": "text/html; charset=\"UTF-8\"",
+		"Subject":      subject,
+	}
+
+	var msg bytes.Buffer
+	for k, v := range headers {
+		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+	}
+
+	msg.WriteString("\r\n" + body)
+
+	return msg.Bytes()
+}
+
 func (m *Manager) SendMail(mm MailMessage) error {
 	addr := fmt.Sprintf("%s:%s", m.smtpServer, m.smtpPort)
 
-	msgStr := fmt.Sprintf("Subject: %s\r\n%s%s", mm.Subject, mm.MsgStyle, mm.Message)
-
 	// Connect to SMTP server
-	msg := []byte(msgStr)
+	msg := m.buildHTMLMessage(mm.Subject, mm.Message)
 
 	// Sending email.
 	if err := smtp.SendMail(addr, nil, m.smtpSender, mm.To, msg); err != nil {
