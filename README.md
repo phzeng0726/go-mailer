@@ -7,7 +7,7 @@ It provides an easy way to render HTML templates with dynamic data and send them
 ## 📦 Installation
 
 ```bash
-go get github.com/phzeng0726/go-mailer@v0.1.2
+go get github.com/phzeng0726/go-mailer@v0.1.3
 ```
 
 ## 🚀 Example Usage
