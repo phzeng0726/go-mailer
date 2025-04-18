@@ -4,9 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"net/smtp"
+	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
+
+	"github.com/vanng822/go-premailer/premailer"
 )
 
 type MailManager interface {
@@ -80,19 +85,50 @@ func (m *Manager) SendMail(mm MailMessage) error {
 	return nil
 }
 
-func (m *Manager) RenderTemplate(templateFile string, data any) (string, error) {
+func (m *Manager) RenderTemplate(templateFile, cssFile string, data any) (string, error) {
 	tmplPath := filepath.Join(m.templatePath, templateFile)
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		return "", err
 	}
 
-	var body bytes.Buffer
-	if err := tmpl.Execute(&body, data); err != nil {
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", err
 	}
 
-	return body.String(), nil
+	// 讀本地 CSS 檔案
+	cssPath := filepath.Join(m.templatePath, cssFile)
+	cssBytes, err := os.ReadFile(cssPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read css file %s: %w", cssFile, err)
+	}
+	cssContent := string(cssBytes)
+
+	// 插入 CSS 到 <head><style> 中（粗略做法：用字串替換）
+	htmlWithCSS := strings.Replace(
+		buf.String(),
+		"</head>",
+		fmt.Sprintf("<style>%s</style></head>", cssContent),
+		1,
+	)
+
+	// Convert css into inline style
+	options := premailer.NewOptions()
+	options.RemoveClasses = false  // 不移除 class（可選）
+	options.CssToAttributes = true // 將 CSS 屬性轉為 HTML 屬性（支援更廣）
+
+	prem, err := premailer.NewPremailerFromString(htmlWithCSS, options)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	html, err := prem.Transform()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return html, nil
 }
 
 func (m *Manager) RenderTemplateWithFuncs(templateFile string, data any) (string, error) {
@@ -110,10 +146,21 @@ func (m *Manager) RenderTemplateWithFuncs(templateFile string, data any) (string
 		return "", err
 	}
 
-	var body bytes.Buffer
-	if err := tmplWithAdd.Execute(&body, data); err != nil {
+	var buf bytes.Buffer
+	if err := tmplWithAdd.Execute(&buf, data); err != nil {
 		return "", err
 	}
 
-	return body.String(), nil
+	// Convert css into inline style
+	prem, err := premailer.NewPremailerFromString(buf.String(), premailer.NewOptions())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	html, err := prem.Transform()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return html, nil
 }
