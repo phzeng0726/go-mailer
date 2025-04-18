@@ -7,7 +7,7 @@ It provides an easy way to render HTML templates with dynamic data and send them
 ## 📦 Installation
 
 ```bash
-go get github.com/phzeng0726/go-mailer@v0.1.3
+go get github.com/phzeng0726/go-mailer@v0.1.4
 ```
 
 ## 🚀 Example Usage
@@ -17,18 +17,18 @@ package main
 
 import (
 	"log"
-	"github.com/phzeng0726/go-mailer/mail"
+	"github.com/phzeng0726/go-mailer"
 )
 
 func main() {
 	// Initialize Mail Manager
-	manager, err := mail.NewManager("smtp.example.com", "587", "you@example.com", "./templates")
+	manager, err := gomailer.NewManager("smtp.example.com", "587", "you@example.com", "./templates", "./templates/css")
 	if err != nil {
 		log.Fatalf("failed to create manager: %v", err)
 	}
 
 	// Render template with dynamic data
-	body, err := manager.RenderTemplate("hello.html", map[string]any{
+	body, err := manager.RenderTemplate("welcome.html", map[string]any{
 		"Name": "Someone",
 	})
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// Send the email
-	err = manager.SendMail(mail.MailMessage{
+	err = manager.SendMail(gomailer.MailMessage{
 		Subject: "Hello",
 		Message: body,
 		To:      []string{"someone@example.com"},
@@ -65,7 +65,7 @@ func main() {
 ### `NewManager`
 
 ```go
-func NewManager(smtpServer, smtpPort, smtpSender, templatePath string) (*Manager, error)
+func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) (*Manager, error)
 ```
 
 Creates a new mail manager instance.
@@ -74,6 +74,7 @@ Creates a new mail manager instance.
 - `smtpPort`: SMTP server port (e.g., `587`)
 - `smtpSender`: Sender's email address
 - `templatePath`: Root directory of your template files
+- `cssPath`: Root directory of your css files
 
 ---
 
@@ -92,7 +93,7 @@ Sends an email.
 ### `RenderTemplate`
 
 ```go
-func (m *Manager) RenderTemplate(templateFile string, data any) (string, error)
+func (m *Manager) RenderTemplate(tmplFile string, data any) (string, error)
 ```
 
 Renders an HTML template using the provided data.
@@ -102,10 +103,30 @@ Renders an HTML template using the provided data.
 ### `RenderTemplateWithFuncs`
 
 ```go
-func (m *Manager) RenderTemplateWithFuncs(templateFile string, data any) (string, error)
+func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any) (string, error)
 ```
 
 Renders an HTML template with additional template functions like `add`.
+
+---
+
+### `RenderTemplateWithCSS`
+
+```go
+func (m *Manager) RenderTemplateWithCSS(tmplFile, cssFile string, data any) (string, error)
+```
+
+Renders an HTML template using the provided data and an external CSS file, automatically converting the CSS to inline styles.
+
+---
+
+### `RenderTemplateWithFuncsAndCSS`
+
+```go
+func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any) (string, error)
+```
+
+Renders an HTML template with additional template functions like `add` and an external CSS file, automatically converting the CSS to inline styles.
 
 ---
 
