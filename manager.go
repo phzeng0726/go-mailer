@@ -1,4 +1,4 @@
-package gomailer
+package mailstyler
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/smtp"
 
-	"github.com/phzeng0726/go-mailer/internal/service"
+	"github.com/phzeng0726/gomailstyler/internal/service"
 )
 
 type MailManager interface {

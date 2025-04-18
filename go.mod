@@ -1,4 +1,4 @@
-module github.com/phzeng0726/go-mailer
+module github.com/phzeng0726/gomailstyler
 
 go 1.24.2
 

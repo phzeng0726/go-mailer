@@ -1,13 +1,13 @@
-# Go Mailer
+# Go Mail Styler
 
-Go Mailer is a simple and flexible Go package for sending HTML emails via SMTP.
+Go Mail Styler is a simple and flexible Go package for sending HTML emails via SMTP.
 
 It provides an easy way to render HTML templates with dynamic data and send them as emails.
 
 ## 📦 Installation
 
 ```bash
-go get github.com/phzeng0726/go-mailer@v0.1.4
+go get github.com/phzeng0726/gomailstyler@v0.1.5
 ```
 
 ## 🚀 Example Usage
@@ -17,12 +17,12 @@ package main
 
 import (
 	"log"
-	"github.com/phzeng0726/go-mailer"
+	"github.com/phzeng0726/gomailstyler"
 )
 
 func main() {
 	// Initialize Mail Manager
-	manager, err := gomailer.NewManager("smtp.example.com", "587", "you@example.com", "./templates", "./templates/css")
+	manager, err := mailstyler.NewManager("smtp.example.com", "587", "you@example.com", "./templates", "./templates/css")
 	if err != nil {
 		log.Fatalf("failed to create manager: %v", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// Send the email
-	err = manager.SendMail(gomailer.MailMessage{
+	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Hello",
 		Message: body,
 		To:      []string{"someone@example.com"},

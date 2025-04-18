@@ -1,4 +1,4 @@
-package gomailer
+package mailstyler
 
 type MailMessage struct {
 	Subject string

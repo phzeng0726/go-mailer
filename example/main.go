@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	gomailer "github.com/phzeng0726/go-mailer"
+	mailstyler "github.com/phzeng0726/gomailstyler"
 )
 
 // Config holds the environment variables for the mailer
@@ -35,9 +35,9 @@ func loadConfig() Config {
 	}
 }
 
-// createManager initializes the gomailer Manager
-func createManager(cfg Config) *gomailer.Manager {
-	manager, err := gomailer.NewManager(cfg.SMTPServer, cfg.SMTPPort, cfg.SMTPSender, cfg.TemplatePath, cfg.CSSPath)
+// createManager initializes the mailstyler Manager
+func createManager(cfg Config) *mailstyler.Manager {
+	manager, err := mailstyler.NewManager(cfg.SMTPServer, cfg.SMTPPort, cfg.SMTPSender, cfg.TemplatePath, cfg.CSSPath)
 	if err != nil {
 		log.Fatalf("failed to create manager: %v", err)
 	}
@@ -45,7 +45,7 @@ func createManager(cfg Config) *gomailer.Manager {
 }
 
 // sendTemplateMail demonstrates the RenderTemplate function
-func sendTemplateMail(manager *gomailer.Manager, receiver string) {
+func sendTemplateMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("\nExample 2: Using RenderTemplate")
 	body, err := manager.RenderTemplate("welcome.html", map[string]any{
 		"Name": "Alice",
@@ -55,7 +55,7 @@ func sendTemplateMail(manager *gomailer.Manager, receiver string) {
 		log.Fatalf("failed to render template: %v", err)
 	}
 
-	err = manager.SendMail(gomailer.MailMessage{
+	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Rendered Template Email",
 		Message: body,
 		To:      []string{receiver},
@@ -67,7 +67,7 @@ func sendTemplateMail(manager *gomailer.Manager, receiver string) {
 }
 
 // sendTemplateWithFuncsMail demonstrates the RenderTemplateWithFuncs function
-func sendTemplateWithFuncsMail(manager *gomailer.Manager, receiver string) {
+func sendTemplateWithFuncsMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("\nExample 3: Using RenderTemplateWithFuncs")
 
 	body, err := manager.RenderTemplateWithFuncs("welcome_with_funcs.html", map[string]any{
@@ -77,7 +77,7 @@ func sendTemplateWithFuncsMail(manager *gomailer.Manager, receiver string) {
 		log.Fatalf("failed to render template with funcs: %v", err)
 	}
 
-	err = manager.SendMail(gomailer.MailMessage{
+	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Template with Functions Email",
 		Message: body,
 		To:      []string{receiver},
@@ -89,7 +89,7 @@ func sendTemplateWithFuncsMail(manager *gomailer.Manager, receiver string) {
 }
 
 // sendTemplateWithCSSMail demonstrates the RenderTemplateWithCSS function
-func sendTemplateWithCSSMail(manager *gomailer.Manager, receiver string) {
+func sendTemplateWithCSSMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("\nExample 4: Using RenderTemplateWithCSS")
 	body, err := manager.RenderTemplateWithCSS("welcome.html", "styles.css", map[string]any{
 		"Name": "Charlie",
@@ -98,7 +98,7 @@ func sendTemplateWithCSSMail(manager *gomailer.Manager, receiver string) {
 		log.Fatalf("failed to render template with CSS: %v", err)
 	}
 
-	err = manager.SendMail(gomailer.MailMessage{
+	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Template with CSS Email",
 		Message: body,
 		To:      []string{receiver},
@@ -110,7 +110,7 @@ func sendTemplateWithCSSMail(manager *gomailer.Manager, receiver string) {
 }
 
 // sendTemplateWithFuncsAndCSSMail demonstrates the RenderTemplateWithFuncsAndCSS function
-func sendTemplateWithFuncsAndCSSMail(manager *gomailer.Manager, receiver string) {
+func sendTemplateWithFuncsAndCSSMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("\nExample 5: Using RenderTemplateWithFuncsAndCSS")
 	body, err := manager.RenderTemplateWithFuncsAndCSS("welcome_with_funcs.html", "styles.css", map[string]any{
 		"Name": "David",
@@ -119,7 +119,7 @@ func sendTemplateWithFuncsAndCSSMail(manager *gomailer.Manager, receiver string)
 		log.Fatalf("failed to render template with funcs and CSS: %v", err)
 	}
 
-	err = manager.SendMail(gomailer.MailMessage{
+	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Template with Functions and CSS Email",
 		Message: body,
 		To:      []string{receiver},
