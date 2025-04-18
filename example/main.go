@@ -12,7 +12,7 @@ func main() {
 		log.Fatalf("failed to create manager: %v", err)
 	}
 
-	body, err := manager.RenderTemplate("hello.html", map[string]any{
+	body, err := manager.RenderTemplate("hello.html", "style.css", map[string]any{
 		"Name": "Someone",
 	})
 	if err != nil {
