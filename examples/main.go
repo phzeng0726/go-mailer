@@ -1,11 +1,17 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	mailstyler "github.com/phzeng0726/gomailstyler"
+)
+
+var (
+	cfg     *Config
+	manager *mailstyler.Manager
 )
 
 // Config holds the environment variables for the mailer
@@ -19,34 +25,34 @@ type Config struct {
 }
 
 // loadConfig loads environment variables into a Config struct
-func loadConfig() Config {
+func loadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	return Config{
+	return &Config{
 		SMTPServer:   os.Getenv("SMTP_SERVER"),   // e.g., "smtp.example.com"
 		SMTPPort:     os.Getenv("SMTP_PORT"),     // e.g., "587"
 		SMTPSender:   os.Getenv("SMTP_SENDER"),   // e.g., "you@example.com"
 		MailReceiver: os.Getenv("MAIL_RECEIVER"), // e.g., "recipient@example.com"
-		TemplatePath: "./templates",              // Root folder for templates
-		CSSPath:      "./templates/css",          // Root folder for CSS
+		TemplatePath: "./assets/templates",       // Root folder for templates
+		CSSPath:      "./assets/templates/css",   // Root folder for CSS
 	}
 }
 
-// createManager initializes the mailstyler Manager
-func createManager(cfg Config) *mailstyler.Manager {
-	manager, err := mailstyler.NewManager(cfg.SMTPServer, cfg.SMTPPort, cfg.SMTPSender, cfg.TemplatePath, cfg.CSSPath)
+func fileToBytes(filePath string) ([]byte, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
-		log.Fatalf("failed to create manager: %v", err)
+		return nil, err
 	}
-	return manager
+	defer file.Close()
+
+	return io.ReadAll(file)
 }
 
-// sendTemplateMail demonstrates the RenderTemplate function
-func sendTemplateMail(manager *mailstyler.Manager, receiver string) {
-	log.Println("\nExample 2: Using RenderTemplate")
+// Examples ==============================================
+func sendBasicMail(manager *mailstyler.Manager, receiver string) {
 	body, err := manager.RenderTemplate("welcome.html", map[string]any{
 		"Name": "Alice",
 		"Age":  30,
@@ -63,13 +69,9 @@ func sendTemplateMail(manager *mailstyler.Manager, receiver string) {
 	if err != nil {
 		log.Fatalf("failed to send mail: %v", err)
 	}
-	log.Println("Template mail sent successfully!")
 }
 
-// sendTemplateWithFuncsMail demonstrates the RenderTemplateWithFuncs function
-func sendTemplateWithFuncsMail(manager *mailstyler.Manager, receiver string) {
-	log.Println("\nExample 3: Using RenderTemplateWithFuncs")
-
+func sendFuncsMail(manager *mailstyler.Manager, receiver string) {
 	body, err := manager.RenderTemplateWithFuncs("welcome_with_funcs.html", map[string]any{
 		"Name": "Bob",
 	})
@@ -88,9 +90,7 @@ func sendTemplateWithFuncsMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("Template with functions mail sent successfully!")
 }
 
-// sendTemplateWithCSSMail demonstrates the RenderTemplateWithCSS function
-func sendTemplateWithCSSMail(manager *mailstyler.Manager, receiver string) {
-	log.Println("\nExample 4: Using RenderTemplateWithCSS")
+func sendCSSMail(manager *mailstyler.Manager, receiver string) {
 	body, err := manager.RenderTemplateWithCSS("welcome.html", "styles.css", map[string]any{
 		"Name": "Charlie",
 	})
@@ -109,9 +109,7 @@ func sendTemplateWithCSSMail(manager *mailstyler.Manager, receiver string) {
 	log.Println("Template with CSS mail sent successfully!")
 }
 
-// sendTemplateWithFuncsAndCSSMail demonstrates the RenderTemplateWithFuncsAndCSS function
-func sendTemplateWithFuncsAndCSSMail(manager *mailstyler.Manager, receiver string) {
-	log.Println("\nExample 5: Using RenderTemplateWithFuncsAndCSS")
+func sendFuncsAndCSSMail(manager *mailstyler.Manager, receiver string) {
 	body, err := manager.RenderTemplateWithFuncsAndCSS("welcome_with_funcs.html", "styles.css", map[string]any{
 		"Name": "David",
 	})
@@ -130,16 +128,67 @@ func sendTemplateWithFuncsAndCSSMail(manager *mailstyler.Manager, receiver strin
 	log.Println("Template with functions and CSS mail sent successfully!")
 }
 
-func main() {
+func sendCSSAndAttachmentsMail(manager *mailstyler.Manager, receiver string) {
+	body, err := manager.RenderTemplateWithCSS("welcome_with_inline_images.html", "styles.css", map[string]any{
+		"Name": "Pipi",
+	})
+	if err != nil {
+		log.Fatalf("failed to render template with CSS: %v", err)
+	}
+
+	imageData, err := fileToBytes("./assets/images/my_doggy.jpg")
+	if err != nil {
+		log.Fatalf("failed to load image: %v", err)
+	}
+
+	err = manager.SendMail(mailstyler.MailMessage{
+		Subject: "Template with CSS Email With Attachments",
+		Message: body,
+		To:      []string{receiver},
+		Attachments: []mailstyler.Attachment{
+			{
+				FileName: "my_doggy.jpg",
+				Data:     imageData,
+			},
+		},
+		InlineImages: []mailstyler.InlineImage{
+			{
+				CID:      "my-doggy-img",
+				FileName: "my_doggy.jpg",
+				Data:     imageData,
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to send mail: %v", err)
+	}
+	log.Println("Template with CSS And Attachments mail sent successfully!")
+}
+
+// Run ==============================================
+func init() {
 	// Load configuration
-	cfg := loadConfig()
+	cfg = loadConfig()
 
 	// Initialize mailer manager
-	manager := createManager(cfg)
+	var err error
+	manager, err = mailstyler.NewManager(
+		cfg.SMTPServer,
+		cfg.SMTPPort,
+		cfg.SMTPSender,
+		cfg.TemplatePath,
+		cfg.CSSPath,
+	)
+	if err != nil {
+		log.Fatalf("failed to create manager: %v", err)
+	}
 
-	// Run examples
-	sendTemplateMail(manager, cfg.MailReceiver)
-	sendTemplateWithFuncsMail(manager, cfg.MailReceiver)
-	sendTemplateWithCSSMail(manager, cfg.MailReceiver)
-	sendTemplateWithFuncsAndCSSMail(manager, cfg.MailReceiver)
+}
+
+func main() {
+	sendBasicMail(manager, cfg.MailReceiver)
+	sendFuncsMail(manager, cfg.MailReceiver)
+	sendCSSMail(manager, cfg.MailReceiver)
+	sendFuncsAndCSSMail(manager, cfg.MailReceiver)
+	sendCSSAndAttachmentsMail(manager, cfg.MailReceiver)
 }
