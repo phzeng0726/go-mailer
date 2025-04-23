@@ -19,6 +19,7 @@ type Config struct {
 	SMTPServer   string
 	SMTPPort     string
 	SMTPSender   string
+	SMTPPassword string // optional
 	MailReceiver string
 	TemplatePath string
 	CSSPath      string
@@ -35,6 +36,7 @@ func loadConfig() *Config {
 		SMTPServer:   os.Getenv("SMTP_SERVER"),   // e.g., "smtp.example.com"
 		SMTPPort:     os.Getenv("SMTP_PORT"),     // e.g., "587"
 		SMTPSender:   os.Getenv("SMTP_SENDER"),   // e.g., "you@example.com"
+		SMTPPassword: os.Getenv("SMTP_PASSWORD"), // e.g., "you@example.com"
 		MailReceiver: os.Getenv("MAIL_RECEIVER"), // e.g., "recipient@example.com"
 		TemplatePath: "./assets/templates",       // Root folder for templates
 		CSSPath:      "./assets/templates/css",   // Root folder for CSS
@@ -176,6 +178,7 @@ func init() {
 		cfg.SMTPServer,
 		cfg.SMTPPort,
 		cfg.SMTPSender,
+		&cfg.SMTPPassword,
 		cfg.TemplatePath,
 		cfg.CSSPath,
 	)

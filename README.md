@@ -130,16 +130,37 @@ type InlineImage struct {
 ### `NewManager`
 
 ```go
-func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) (*Manager, error)
+func NewManager(
+	smtpHost, smtpPort, smtpSender string,
+	smtpPassword *string,
+	templatePath, cssPath string,
+) (*Manager, error)
 ```
 
 Creates a new mail manager instance.
 
-- `smtpServer`: SMTP server address (e.g., `smtp.example.com`)
-- `smtpPort`: SMTP server port (e.g., `587`)
-- `smtpSender`: Sender's email address
-- `templatePath`: Root directory of your template files
-- `cssPath`: Root directory of your css files
+- `smtpHost`: SMTP server host address (e.g., `smtp.example.com`).
+
+  - This specifies the address of the SMTP server used for sending emails.
+
+- `smtpPort`: SMTP server port (e.g., `587`).
+
+  - This specifies the port number used to connect to the SMTP server. Typically, `587` is used for secure email transmission with STARTTLS, and `465` is for SSL/TLS.
+
+- `smtpSender`: Sender's email address.
+
+  - The email address that will be used as the "From" address when sending emails.
+
+- `smtpPassword`: Sender's SMTP password (or application-specific password if applicable).
+
+  - This is the password (or application-specific password for Gmail and similar services) required to authenticate with the SMTP server.
+
+- `templatePath`: Root directory of your template files.
+
+  - The file system path where email templates are stored. These templates will be used to render email content dynamically.
+
+- `cssPath`: Root directory of your CSS files.
+  - The file system path where CSS files are stored. These CSS files will be used to style email templates when sending HTML emails.
 
 ---
 

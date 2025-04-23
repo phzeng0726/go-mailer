@@ -23,7 +23,7 @@ type MailManager interface {
 }
 
 type Manager struct {
-	smtpServer   string
+	smtpHost     string
 	smtpPort     string
 	smtpSender   string
 	smtpPassword *string
@@ -32,12 +32,12 @@ type Manager struct {
 }
 
 func NewManager(
-	smtpServer, smtpPort, smtpSender string,
+	smtpHost, smtpPort, smtpSender string,
 	smtpPassword *string,
 	templatePath, cssPath string,
 ) (*Manager, error) {
-	if smtpServer == "" {
-		return nil, errors.New("empty smtpServer")
+	if smtpHost == "" {
+		return nil, errors.New("empty smtpHost")
 	}
 
 	if smtpPort == "" {
@@ -54,7 +54,7 @@ func NewManager(
 	})
 
 	return &Manager{
-		smtpServer:   smtpServer,
+		smtpHost:     smtpHost,
 		smtpPort:     smtpPort,
 		smtpSender:   smtpSender,
 		smtpPassword: smtpPassword,
@@ -142,7 +142,7 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 }
 
 func (m *Manager) SendMail(mm MailMessage) error {
-	addr := fmt.Sprintf("%s:%s", m.smtpServer, m.smtpPort)
+	addr := fmt.Sprintf("%s:%s", m.smtpHost, m.smtpPort)
 	allRecipients := append(mm.To, mm.Cc...)
 
 	// Build HTML message
@@ -151,7 +151,7 @@ func (m *Manager) SendMail(mm MailMessage) error {
 	// Set up authentication if a password is provided
 	var auth smtp.Auth
 	if m.smtpPassword != nil && *m.smtpPassword != "" {
-		auth = smtp.PlainAuth("", m.smtpSender, *m.smtpPassword, m.smtpServer)
+		auth = smtp.PlainAuth("", m.smtpSender, *m.smtpPassword, m.smtpHost)
 	}
 
 	// Sending email
