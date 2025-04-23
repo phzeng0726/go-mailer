@@ -16,7 +16,7 @@ var (
 
 // Config holds the environment variables for the mailer
 type Config struct {
-	SMTPServer   string
+	SMTPHost     string
 	SMTPPort     string
 	SMTPSender   string
 	SMTPPassword string // optional
@@ -33,7 +33,7 @@ func loadConfig() *Config {
 	}
 
 	return &Config{
-		SMTPServer:   os.Getenv("SMTP_SERVER"),   // e.g., "smtp.example.com"
+		SMTPHost:     os.Getenv("SMTP_HOST"),     // e.g., "smtp.example.com"
 		SMTPPort:     os.Getenv("SMTP_PORT"),     // e.g., "587"
 		SMTPSender:   os.Getenv("SMTP_SENDER"),   // e.g., "you@example.com"
 		SMTPPassword: os.Getenv("SMTP_PASSWORD"), // e.g., "you@example.com"
@@ -175,7 +175,7 @@ func init() {
 	// Initialize mailer manager
 	var err error
 	manager, err = mailstyler.NewManager(
-		cfg.SMTPServer,
+		cfg.SMTPHost,
 		cfg.SMTPPort,
 		cfg.SMTPSender,
 		&cfg.SMTPPassword,
