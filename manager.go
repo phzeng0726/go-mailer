@@ -2,8 +2,11 @@ package mailstyler
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"mime/multipart"
+	"net/http"
 	"net/smtp"
 	"strings"
 
@@ -54,23 +57,59 @@ func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) 
 }
 
 func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
+	buf := bytes.NewBuffer(nil)
+	writer := multipart.NewWriter(buf)
+	boundary := writer.Boundary()
+
 	headers := map[string]string{
 		"MIME-Version": "1.0",
 		"From":         m.smtpSender,
 		"To":           strings.Join(mm.To, ","),
-		"Cc":           strings.Join(mm.Cc, ","),
-		"Content-Type": "text/html; charset=\"UTF-8\"",
 		"Subject":      mm.Subject,
+		"Content-Type": fmt.Sprintf("multipart/mixed; boundary=%s\n", boundary),
 	}
 
-	var msg bytes.Buffer
+	if len(mm.Cc) > 0 {
+		headers["Cc"] = strings.Join(mm.Cc, ",")
+	}
+
 	for k, v := range headers {
-		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		buf.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
 	}
 
-	msg.WriteString("\r\n" + mm.Message)
+	// Write HTML message body
+	buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+	buf.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+	buf.WriteString("\r\n" + mm.Message)
 
-	return msg.Bytes()
+	if len(mm.Attachments) > 0 {
+		// Add each attachment as a separate MIME part
+		for _, attachment := range mm.Attachments {
+			buf.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
+			buf.WriteString(fmt.Sprintf("Content-Type: %s\r\n", http.DetectContentType(attachment.Data)))
+			buf.WriteString("Content-Transfer-Encoding: base64\r\n")
+			buf.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", attachment.FileName))
+			buf.WriteString("\r\n")
+
+			encoded := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
+			base64.StdEncoding.Encode(encoded, attachment.Data)
+
+			// Encode attachment data as base64 and split into 76-character lines
+			for i := 0; i < len(encoded); i += 76 {
+				end := i + 76
+				if end > len(encoded) {
+					end = len(encoded)
+				}
+				buf.Write(encoded[i:end])
+				buf.WriteString("\r\n")
+			}
+		}
+	}
+
+	// Final boundary to indicate end of MIME message
+	buf.WriteString(fmt.Sprintf("\r\n--%s--\r\n", boundary))
+
+	return buf.Bytes()
 }
 
 func (m *Manager) SendMail(mm MailMessage) error {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -130,6 +131,49 @@ func sendTemplateWithFuncsAndCSSMail(manager *mailstyler.Manager, receiver strin
 	log.Println("Template with functions and CSS mail sent successfully!")
 }
 
+func imageToBytes(filePath string) ([]byte, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return io.ReadAll(file)
+}
+
+// sendTemplateWithCSSMail demonstrates the RenderTemplateWithCSS function
+func sendTemplateWithCSSAndAttachmentsMail(manager *mailstyler.Manager, receiver string) {
+	log.Println("\nExample 4: Using RenderTemplateWithCSS")
+	body, err := manager.RenderTemplateWithCSS("welcome.html", "styles.css", map[string]any{
+		"Name": "Charlie",
+	})
+	if err != nil {
+		log.Fatalf("failed to render template with CSS: %v", err)
+	}
+
+	imageData, err := imageToBytes("./assets/image.jpg")
+	if err != nil {
+		log.Fatalf("failed to load image: %v", err)
+	}
+
+	err = manager.SendMail(mailstyler.MailMessage{
+		Subject: "Template with CSS Email With Attachments",
+		Message: body,
+		To:      []string{receiver},
+		Attachments: []mailstyler.Attachment{
+			{
+				FileName: "image.jpg",
+				MIMEType: "image/jpeg",
+				Data:     imageData,
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to send mail: %v", err)
+	}
+	log.Println("Template with CSS mail sent successfully!")
+}
+
 func main() {
 	// Load configuration
 	cfg := loadConfig()
@@ -138,8 +182,9 @@ func main() {
 	manager := createManager(cfg)
 
 	// Run examples
-	sendTemplateMail(manager, cfg.MailReceiver)
-	sendTemplateWithFuncsMail(manager, cfg.MailReceiver)
-	sendTemplateWithCSSMail(manager, cfg.MailReceiver)
-	sendTemplateWithFuncsAndCSSMail(manager, cfg.MailReceiver)
+	// sendTemplateMail(manager, cfg.MailReceiver)
+	// sendTemplateWithFuncsMail(manager, cfg.MailReceiver)
+	// sendTemplateWithCSSMail(manager, cfg.MailReceiver)
+	// sendTemplateWithFuncsAndCSSMail(manager, cfg.MailReceiver)
+	sendTemplateWithCSSAndAttachmentsMail(manager, cfg.MailReceiver)
 }
