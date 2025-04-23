@@ -56,6 +56,38 @@ func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) 
 	}, nil
 }
 
+func (m *Manager) writeHTMLAttachment(
+	buf *bytes.Buffer,
+	boundary string,
+	data []byte,
+	fileName, disposition string,
+	contentID *string,
+) {
+	buf.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
+	buf.WriteString(fmt.Sprintf("Content-Type: %s\r\n", http.DetectContentType(data)))
+	buf.WriteString("Content-Transfer-Encoding: base64\r\n")
+	buf.WriteString(fmt.Sprintf("Content-Disposition: %s; filename=\"%s\"\r\n", disposition, fileName))
+
+	if contentID != nil {
+		buf.WriteString(fmt.Sprintf("Content-ID: <%s>\r\n", *contentID))
+	}
+
+	buf.WriteString("\r\n")
+
+	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
+	base64.StdEncoding.Encode(encoded, data)
+
+	// Split into 76-character lines
+	for i := 0; i < len(encoded); i += 76 {
+		end := i + 76
+		if end > len(encoded) {
+			end = len(encoded)
+		}
+		buf.Write(encoded[i:end])
+		buf.WriteString("\r\n")
+	}
+}
+
 func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 	buf := bytes.NewBuffer(nil)
 	writer := multipart.NewWriter(buf)
@@ -82,27 +114,17 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 	buf.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
 	buf.WriteString("\r\n" + mm.Message)
 
+	// Add attachments
 	if len(mm.Attachments) > 0 {
-		// Add each attachment as a separate MIME part
 		for _, attachment := range mm.Attachments {
-			buf.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
-			buf.WriteString(fmt.Sprintf("Content-Type: %s\r\n", http.DetectContentType(attachment.Data)))
-			buf.WriteString("Content-Transfer-Encoding: base64\r\n")
-			buf.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", attachment.FileName))
-			buf.WriteString("\r\n")
+			m.writeHTMLAttachment(buf, boundary, attachment.Data, attachment.FileName, "attachment", nil)
+		}
+	}
 
-			encoded := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
-			base64.StdEncoding.Encode(encoded, attachment.Data)
-
-			// Encode attachment data as base64 and split into 76-character lines
-			for i := 0; i < len(encoded); i += 76 {
-				end := i + 76
-				if end > len(encoded) {
-					end = len(encoded)
-				}
-				buf.Write(encoded[i:end])
-				buf.WriteString("\r\n")
-			}
+	// Add inline images
+	if len(mm.InlineImages) > 0 {
+		for _, img := range mm.InlineImages {
+			m.writeHTMLAttachment(buf, boundary, img.Data, img.FileName, "inline", &img.CID)
 		}
 	}
 
