@@ -23,14 +23,19 @@ type MailManager interface {
 }
 
 type Manager struct {
-	smtpServer string
-	smtpPort   string
-	smtpSender string
-	tmplSvc    service.Templates
-	cssToolSvc service.CSSTools
+	smtpServer   string
+	smtpPort     string
+	smtpSender   string
+	smtpPassword *string
+	tmplSvc      service.Templates
+	cssToolSvc   service.CSSTools
 }
 
-func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) (*Manager, error) {
+func NewManager(
+	smtpServer, smtpPort, smtpSender string,
+	smtpPassword *string,
+	templatePath, cssPath string,
+) (*Manager, error) {
 	if smtpServer == "" {
 		return nil, errors.New("empty smtpServer")
 	}
@@ -49,11 +54,12 @@ func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) 
 	})
 
 	return &Manager{
-		smtpServer: smtpServer,
-		smtpPort:   smtpPort,
-		smtpSender: smtpSender,
-		tmplSvc:    svc.Templates,
-		cssToolSvc: svc.CSSTools,
+		smtpServer:   smtpServer,
+		smtpPort:     smtpPort,
+		smtpSender:   smtpSender,
+		smtpPassword: smtpPassword,
+		tmplSvc:      svc.Templates,
+		cssToolSvc:   svc.CSSTools,
 	}, nil
 }
 
@@ -137,13 +143,19 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 
 func (m *Manager) SendMail(mm MailMessage) error {
 	addr := fmt.Sprintf("%s:%s", m.smtpServer, m.smtpPort)
+	allRecipients := append(mm.To, mm.Cc...)
 
 	// Build HTML message
 	msg := m.buildHTMLMessage(mm)
 
-	// Sending email.
-	allRecipients := append(mm.To, mm.Cc...)
-	if err := smtp.SendMail(addr, nil, m.smtpSender, allRecipients, msg); err != nil {
+	// Set up authentication if a password is provided
+	var auth smtp.Auth
+	if m.smtpPassword != nil && *m.smtpPassword != "" {
+		auth = smtp.PlainAuth("", m.smtpSender, *m.smtpPassword, m.smtpServer)
+	}
+
+	// Sending email
+	if err := smtp.SendMail(addr, auth, m.smtpSender, allRecipients, msg); err != nil {
 		return err
 	}
 
