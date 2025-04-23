@@ -4,10 +4,21 @@ Go Mail Styler is a simple and flexible Go package for sending HTML emails via S
 
 It provides an easy way to render HTML templates with dynamic data and send them as emails.
 
+---
+
+## ✨ Features
+
+- Simple API for sending emails
+- HTML template rendering with dynamic data
+- Support for built-in and custom template functions
+- Easily apply a CSS file across all templates
+- Embed attachments and images directly within HTML
+- Lightweight and easy to integrate
+
 ## 📦 Installation
 
 ```bash
-go get github.com/phzeng0726/gomailstyler@v0.1.5
+go get github.com/phzeng0726/gomailstyler@v0.2.0
 ```
 
 ## 🚀 Example Usage
@@ -35,11 +46,31 @@ func main() {
 		log.Fatalf("failed to render template: %v", err)
 	}
 
+	// Optional: Load image as []byte
+	imageData, err := fileToBytes("./assets/images/my_doggy.jpg")
+	if err != nil {
+		log.Fatalf("failed to load image: %v", err)
+	}
+
 	// Send the email
 	err = manager.SendMail(mailstyler.MailMessage{
 		Subject: "Hello",
 		Message: body,
 		To:      []string{"someone@example.com"},
+		Cc:      []string{"someone@example.com"}, // Optional
+		Attachments: []mailstyler.Attachment{  // Optional
+			{
+				FileName: "my_doggy.jpg",
+				Data:     imageData,
+			},
+		},
+		InlineImages: []mailstyler.InlineImage{  // Optional
+			{
+				CID:      "my-doggy-img",
+				FileName: "my_doggy.jpg",
+				Data:     imageData,
+			},
+		},
 	})
 	if err != nil {
 		log.Fatalf("failed to send mail: %v", err)
@@ -48,15 +79,6 @@ func main() {
 	log.Println("Mail sent successfully!")
 }
 ```
-
----
-
-## ✨ Features
-
-- Simple API for sending emails
-- HTML template rendering with dynamic data
-- Support for template helper functions
-- Lightweight and easy to integrate
 
 ---
 
@@ -103,7 +125,7 @@ Renders an HTML template using the provided data.
 ### `RenderTemplateWithFuncs`
 
 ```go
-func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any) (string, error)
+func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any, customFuncs ...template.FuncMap) (string, error)
 ```
 
 Renders an HTML template with additional template functions like `add`.
@@ -123,21 +145,52 @@ Renders an HTML template using the provided data and an external CSS file, autom
 ### `RenderTemplateWithFuncsAndCSS`
 
 ```go
-func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any) (string, error)
+func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any, customFuncs ...template.FuncMap) (string, error)
 ```
 
 Renders an HTML template with additional template functions like `add` and an external CSS file, automatically converting the CSS to inline styles.
 
 ---
 
-## ✉️ MailMessage Struct
+## 🏗️ Input Struct
+
+### MailMessage
+
+A `MailMessage` represents the email that will be sent.
 
 ```go
 type MailMessage struct {
-	Subject string   // Email subject
-	Message string   // HTML email content
-	To      []string // Recipient email addresses
+    Subject      string          // The subject of the email
+    Message      string          // The body content of the email in HTML format
+    To           []string        // List of recipient email addresses
+    Cc           []string        // List of CC email addresses (optional)
+    Attachments  []Attachment    // List of file attachments (optional)
+    InlineImages []InlineImage   // List of inline images to be embedded (optional)
 }
+```
+
+### Attachment
+
+An `Attachment` represents a file to be attached to the email.
+
+```go
+type Attachment struct {
+    FileName string   // The name of the attachment file
+    Data     []byte   // The binary data of the attachment file
+}
+```
+
+### InlineImage
+
+An `InlineImage` represents an image that is embedded within the HTML body of the email.
+
+```go
+type InlineImage struct {
+    CID      string   // The content ID to reference the image within the HTML (e.g., cid:image-id)
+    FileName string   // The name of the image file
+    Data     []byte   // The binary data of the image
+}
+
 ```
 
 ---
