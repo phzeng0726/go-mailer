@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/smtp"
+	"strings"
 
 	"github.com/phzeng0726/gomailstyler/internal/service"
 )
@@ -52,11 +53,14 @@ func NewManager(smtpServer, smtpPort, smtpSender, templatePath, cssPath string) 
 	}, nil
 }
 
-func (m *Manager) buildHTMLMessage(subject, body string) []byte {
+func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 	headers := map[string]string{
 		"MIME-Version": "1.0",
+		"From":         m.smtpSender,
+		"To":           strings.Join(mm.To, ","),
+		"Cc":           strings.Join(mm.Cc, ","),
 		"Content-Type": "text/html; charset=\"UTF-8\"",
-		"Subject":      subject,
+		"Subject":      mm.Subject,
 	}
 
 	var msg bytes.Buffer
@@ -64,7 +68,7 @@ func (m *Manager) buildHTMLMessage(subject, body string) []byte {
 		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
 	}
 
-	msg.WriteString("\r\n" + body)
+	msg.WriteString("\r\n" + mm.Message)
 
 	return msg.Bytes()
 }
@@ -72,11 +76,12 @@ func (m *Manager) buildHTMLMessage(subject, body string) []byte {
 func (m *Manager) SendMail(mm MailMessage) error {
 	addr := fmt.Sprintf("%s:%s", m.smtpServer, m.smtpPort)
 
-	// Connect to SMTP server
-	msg := m.buildHTMLMessage(mm.Subject, mm.Message)
+	// Build HTML message
+	msg := m.buildHTMLMessage(mm)
 
 	// Sending email.
-	if err := smtp.SendMail(addr, nil, m.smtpSender, mm.To, msg); err != nil {
+	allRecipients := append(mm.To, mm.Cc...)
+	if err := smtp.SendMail(addr, nil, m.smtpSender, allRecipients, msg); err != nil {
 		return err
 	}
 
