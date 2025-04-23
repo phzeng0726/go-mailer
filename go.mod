@@ -6,6 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/joho/godotenv v1.5.1
 	github.com/vanng822/go-premailer v1.24.0
+	golang.org/x/text v0.24.0
 )
 
 require (

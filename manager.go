@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html/template"
 	"mime/multipart"
 	"net/http"
 	"net/smtp"
@@ -16,9 +17,9 @@ import (
 type MailManager interface {
 	SendMail(mm MailMessage) error
 	RenderTemplate(tmplFile string, data any) (string, error)
-	RenderTemplateWithFuncs(tmplFile string, data any) (string, error)
+	RenderTemplateWithFuncs(tmplFile string, data any, customFuncs ...template.FuncMap) (string, error)
 	RenderTemplateWithCSS(tmplFile, cssFile string, data any) (string, error)
-	RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any) (string, error)
+	RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any, customFuncs ...template.FuncMap) (string, error)
 }
 
 type Manager struct {
@@ -153,15 +154,15 @@ func (m *Manager) RenderTemplate(tmplFile string, data any) (string, error) {
 	return m.tmplSvc.RenderTemplate(tmplFile, data)
 }
 
-func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any) (string, error) {
-	return m.tmplSvc.RenderTemplateWithFuncs(tmplFile, data)
+func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any, customFuncs ...template.FuncMap) (string, error) {
+	return m.tmplSvc.RenderTemplateWithFuncs(tmplFile, data, customFuncs)
 }
 
 func (m *Manager) RenderTemplateWithCSS(tmplFile, cssFile string, data any) (string, error) {
 	return m.cssToolSvc.RenderTemplateWithCSS(tmplFile, cssFile, data)
 }
 
-func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any) (string, error) {
-	return m.cssToolSvc.RenderTemplateWithFuncsAndCSS(tmplFile, cssFile, data)
+func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any, customFuncs ...template.FuncMap) (string, error) {
+	return m.cssToolSvc.RenderTemplateWithFuncsAndCSS(tmplFile, cssFile, data, customFuncs)
 
 }
