@@ -82,6 +82,49 @@ func main() {
 
 ---
 
+## 🏗️ Input Struct
+
+### MailMessage
+
+A `MailMessage` represents the email that will be sent.
+
+```go
+type MailMessage struct {
+    Subject      string          // The subject of the email
+    Message      string          // The body content of the email in HTML format
+    To           []string        // List of recipient email addresses
+    Cc           []string        // List of CC email addresses (optional)
+    Attachments  []Attachment    // List of file attachments (optional)
+    InlineImages []InlineImage   // List of inline images to be embedded (optional)
+}
+```
+
+### Attachment
+
+An `Attachment` represents a file to be attached to the email.
+
+```go
+type Attachment struct {
+    FileName string   // The name of the attachment file
+    Data     []byte   // The binary data of the attachment file
+}
+```
+
+### InlineImage
+
+An `InlineImage` represents an image that is embedded within the HTML body of the email.
+
+```go
+type InlineImage struct {
+    CID      string   // The content ID to reference the image within the HTML (e.g., cid:image-id)
+    FileName string   // The name of the image file
+    Data     []byte   // The binary data of the image
+}
+
+```
+
+---
+
 ## 📘 API Reference
 
 ### `NewManager`
@@ -128,7 +171,7 @@ Renders an HTML template using the provided data.
 func (m *Manager) RenderTemplateWithFuncs(tmplFile string, data any, customFuncs ...template.FuncMap) (string, error)
 ```
 
-Renders an HTML template with additional template functions like `add`.
+Renders an HTML template with additional template functions. You can define your own custom functions by passing a template.FuncMap as customFuncs. If no customFuncs are provided, the package will use a set of default, commonly used functions.
 
 ---
 
@@ -148,50 +191,24 @@ Renders an HTML template using the provided data and an external CSS file, autom
 func (m *Manager) RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any, customFuncs ...template.FuncMap) (string, error)
 ```
 
-Renders an HTML template with additional template functions like `add` and an external CSS file, automatically converting the CSS to inline styles.
+Renders an HTML template with additional template functions and an external CSS file, automatically converting the CSS to inline styles.
+Similar to `RenderTemplateWithFuncs`, you can provide your own custom functions, and the package will fall back to the default ones if none are provided.
 
 ---
 
-## 🏗️ Input Struct
+### 🧰 Default Functions
 
-### MailMessage
-
-A `MailMessage` represents the email that will be sent.
-
-```go
-type MailMessage struct {
-    Subject      string          // The subject of the email
-    Message      string          // The body content of the email in HTML format
-    To           []string        // List of recipient email addresses
-    Cc           []string        // List of CC email addresses (optional)
-    Attachments  []Attachment    // List of file attachments (optional)
-    InlineImages []InlineImage   // List of inline images to be embedded (optional)
-}
-```
-
-### Attachment
-
-An `Attachment` represents a file to be attached to the email.
-
-```go
-type Attachment struct {
-    FileName string   // The name of the attachment file
-    Data     []byte   // The binary data of the attachment file
-}
-```
-
-### InlineImage
-
-An `InlineImage` represents an image that is embedded within the HTML body of the email.
-
-```go
-type InlineImage struct {
-    CID      string   // The content ID to reference the image within the HTML (e.g., cid:image-id)
-    FileName string   // The name of the image file
-    Data     []byte   // The binary data of the image
-}
-
-```
+| Function     | Description                                                     | Example                                            |
+| ------------ | --------------------------------------------------------------- | -------------------------------------------------- |
+| `add`        | Adds two integers                                               | `{{ add 1 2 }}` → `3`                              |
+| `toUpper`    | Converts a string to uppercase                                  | `{{ toUpper "hello" }}` → `HELLO`                  |
+| `toLower`    | Converts a string to lowercase                                  | `{{ toLower "hello" }}` → `hello`                  |
+| `trim`       | Removes leading and trailing whitespace                         | `{{ trim " hello " }}` → `hello`                   |
+| `title`      | Capitalizes the first letter of each word                       | `{{ title "go mail styler" }}` → `Go Mail Styler`  |
+| `formatDate` | Formats a `time.Time` using a Go layout string                  | `{{ formatDate now "2006-01-02" }}` → `2025-04-23` |
+| `isEmpty`    | Returns `true` if a string is empty or contains only whitespace | `{{ isEmpty "  " }}` → `true`                      |
+| `safeHTML`   | Marks a string as safe HTML (not escaped in output)             | `{{ safeHTML "<b>bold</b>" }}`                     |
+| `inc`        | Increments an integer by 1                                      | `{{ inc 0 }}` → `1`                                |
 
 ---
 
