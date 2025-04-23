@@ -1,13 +1,15 @@
 package service
 
+import "html/template"
+
 type Templates interface {
 	RenderTemplate(tmplFile string, data any) (string, error)
-	RenderTemplateWithFuncs(tmplFile string, data any) (string, error)
+	RenderTemplateWithFuncs(tmplFile string, data any, customFuncs []template.FuncMap) (string, error)
 }
 
 type CSSTools interface {
 	RenderTemplateWithCSS(tmplFile, cssFile string, data any) (string, error)
-	RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any) (string, error)
+	RenderTemplateWithFuncsAndCSS(tmplFile, cssFile string, data any, customFuncs []template.FuncMap) (string, error)
 }
 
 type Services struct {

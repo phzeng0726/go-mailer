@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome Email</title>
+    <style>
+      /* Inline CSS for RenderTemplate */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333333;
+      }
+      p {
+        color: #555555;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome, {{.Name}}!</h1>
+      <p>
+        Thank you for joining us. You are {{.Age}} years old, and we are excited
+        to have you on board!
+      </p>
+
+      <img src="cid:my-doggy-img" alt="My Doggy Image" />
+
+      <p>Best regards,<br />The Team</p>
+    </div>
+  </body>
+</html>

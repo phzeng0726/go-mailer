@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,10 +33,10 @@ func (s *CSSToolsService) RenderTemplateWithCSS(templateFile, cssFile string, da
 	)
 }
 
-func (s *CSSToolsService) RenderTemplateWithFuncsAndCSS(templateFile, cssFile string, data any) (string, error) {
+func (s *CSSToolsService) RenderTemplateWithFuncsAndCSS(templateFile, cssFile string, data any, customFuncs []template.FuncMap) (string, error) {
 	return s.renderWithCSS(
 		cssFile,
-		func() (string, error) { return s.tmplSvc.RenderTemplateWithFuncs(templateFile, data) },
+		func() (string, error) { return s.tmplSvc.RenderTemplateWithFuncs(templateFile, data, customFuncs) },
 		"RenderTemplateWithFuncsAndCSS",
 	)
 }
