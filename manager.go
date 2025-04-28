@@ -104,7 +104,7 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 		"MIME-Version": "1.0",
 		"To":           strings.Join(mm.To, ","),
 		"Subject":      mm.Subject,
-		"Content-Type": fmt.Sprintf("multipart/mixed; boundary=%s\n", boundary),
+		"Content-Type": fmt.Sprintf("multipart/mixed; boundary=%s", boundary),
 	}
 
 	if len(mm.Cc) > 0 {
@@ -116,7 +116,7 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 	}
 
 	// Write HTML message body
-	buf.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+	buf.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
 	buf.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
 	buf.WriteString("\r\n" + mm.Message)
 
