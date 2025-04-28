@@ -18,7 +18,7 @@ It provides an easy way to render HTML templates with dynamic data and send them
 ## 📦 Installation
 
 ```bash
-go get github.com/phzeng0726/gomailstyler@v0.2.1
+go get github.com/phzeng0726/gomailstyler@v0.2.2
 ```
 
 ## 🚀 Example Usage

@@ -102,7 +102,6 @@ func (m *Manager) buildHTMLMessage(mm MailMessage) []byte {
 
 	headers := map[string]string{
 		"MIME-Version": "1.0",
-		"From":         m.smtpSender,
 		"To":           strings.Join(mm.To, ","),
 		"Subject":      mm.Subject,
 		"Content-Type": fmt.Sprintf("multipart/mixed; boundary=%s\n", boundary),
